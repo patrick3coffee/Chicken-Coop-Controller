@@ -16,6 +16,7 @@ MotorWithStops::MotorWithStops(int _dirPin,
 
 MotorWithStops::MotorWithStops(int _dirPin, int _pwmPin, int _closeStop, int _openStop) {
   inverted = false;
+  suspended = false;
 
   dirPin = _dirPin;
   pwmPin = _pwmPin;
@@ -58,13 +59,33 @@ void MotorWithStops::stop() {
 }
 
 
-void MotorWithStops::driveMotorToStop(int selectedStop) {
-  digitalWrite(pwmPin, HIGH);
-
-  while (digitalRead(selectedStop) == HIGH ) {
-    delay(200);
+void MotorWithStops::suspend(bool suspend) {
+  if (suspend) {
+    stop();
+    suspended = true;
   }
-  stop();
+  else {
+    suspended = false;
+  }
+}
+
+
+void MotorWithStops::driveMotorToStop(int selectedStop) {
+  if (suspended) {
+    stop();
+  }
+  else {
+    digitalWrite(pwmPin, HIGH);
+
+    bool done = false;
+    while (done) {
+      if (suspended || digitalRead(selectedStop) == HIGH ) {
+        done = true;
+      }
+      delay(200);
+    }
+    stop();
+  }
 }
 
 

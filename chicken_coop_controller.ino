@@ -2,14 +2,14 @@
 
 #define DEBUG
 
-/* 
- *  Pin Assignments 
+/*
+    Pin Assignments
 */
 // Motor pins
 #define DIR_DOOR_PIN 12 // Direction control for motor A
 #define PWM_DOOR_PIN 3  // PWM control (speed) for motor A
 #define DIR_WINDOW_PIN 13
-#define PWM_WINDOW_PIN 11 
+#define PWM_WINDOW_PIN 11
 
 // Stop pins
 #define DOOR_CLOSED_LIMIT 7
@@ -18,13 +18,16 @@
 #define WINDOW_OPEN_LIMIT 4
 
 // Analog pins to read potentiometers for settings
-#define LIGHT_SET_PIN A0   
+#define LIGHT_SET_PIN A0
 #define TEMP_SET_PIN A1
 
 // Analog pins to read sensors
 #define LIGHT_SENSE_PIN A2
 #define TEMP_SENSE_PIN A3
 
+// Mode selector switch
+#define SUSPEND_PIN 2
+#define MANUAL_OPEN_PIN 8
 
 // Enable coop actuators
 #define DOOR     // enable coop door funtionality
@@ -39,38 +42,52 @@ MotorWithStops door(DIR_DOOR_PIN, PWM_DOOR_PIN, DOOR_CLOSED_LIMIT, DOOR_OPEN_LIM
 MotorWithStops window(DIR_WINDOW_PIN, PWM_WINDOW_PIN, WINDOW_CLOSED_LIMIT, WINDOW_OPEN_LIMIT);
 #endif
 
+
 void setup()
 {
 
 #ifdef DEBUG
-// setup serial
+  // setup serial
   Serial.begin(9600);
   Serial.println("Chicken Coop Controller");
 #endif
 
-// setup pins
+  // setup pins
 #ifdef DOOR
   pinMode(LIGHT_SET_PIN, INPUT);
-  pinMode(LIGHT_SENSE_PIN, INPUT);
 #endif
+  pinMode(LIGHT_SENSE_PIN, INPUT); //  Light sensor used for status light brightness
+
 #ifdef WINDOW
   pinMode(TEMP_SET_PIN, INPUT);
   pinMode(TEMP_SENSE_PIN, INPUT);
 #endif
+
+  pinMode(MANUAL_OPEN_PIN, INPUT_PULLUP);
+  pinMode(SUSPEND_PIN, INPUT_PULLUP);
+
+  attachInterrupt(digitalPinToInterrupt(SUSPEND_PIN), overrideInterrupt, CHANGE);
 }
 
 
 void loop()
 {
+  if (digitalRead(MANUAL_OPEN_PIN) == LOW) {
+    manualOpen();
+  }
+  else if (digitalRead(SUSPEND_PIN) == LOW) {
+    suspendMotors();
+  }
   adjustCoop();
   wasteSomeTime();
 }
 
 
 void wasteSomeTime() {
-  
+
 #ifdef DEBUG
-  delay(500);    // Check twice a second for serial output sake.
+  Serial.println(".");
+  delay(1000);    // Check twice a second for serial output sake.
 #else
   delay(60000);  // Check once a minute because temperature and sunlight change slowly.
 #endif
@@ -79,8 +96,11 @@ void wasteSomeTime() {
 
 // Check sensors and actuate motors if needed.
 void adjustCoop() {
+#ifdef DEBUG && DOOR
+  Serial.println("  Light:");
+#endif
 #ifdef DOOR
-// Door and light
+  // Door and light
   if (sensorAboveThreshold(LIGHT_SET_PIN, LIGHT_SENSE_PIN)) {
     door.open();
   }
@@ -89,7 +109,10 @@ void adjustCoop() {
   }
 #endif
 
-// Window and temperature
+  // Window and temperature
+#ifdef DEBUG && WINDOW
+  Serial.println("  Temperature:");
+#endif
 #ifdef WINDOW
   if (sensorAboveThreshold(TEMP_SET_PIN, TEMP_SENSE_PIN)) {
     window.open();
@@ -127,6 +150,67 @@ bool sensorAboveThreshold(int setting_pin, int sensor_pin) {
 #endif
 
     return false;
+  }
+}
+
+
+void overrideInterrupt() {
+  delay(20);  // debounce
+  if ( digitalRead(SUSPEND_PIN) == LOW) {
+#ifdef DEBUG
+    Serial.println("*** Suspending all motors ***");
+#endif
+    suspendMotors();
+  }
+  else {
+#ifdef DEBUG
+    Serial.println("*** Resuming all motors ***");
+#endif
+    resumeMotors();
+  }
+
+  if (digitalRead(MANUAL_OPEN_PIN) == LOW) {
+    manualOpen();
+  }
+}
+
+void suspendMotors() {
+#ifdef DOOR
+  door.suspend(true);
+#endif
+
+#ifdef WINDOW
+  window.suspend(true);
+#endif
+  while (digitalRead(SUSPEND_PIN) == LOW) {
+    delay(100);
+  }
+}
+
+void resumeMotors() {
+#ifdef DOOR
+  door.suspend(false);
+#endif
+
+#ifdef WINDOW
+  window.suspend(false);
+#endif
+}
+
+void manualOpen() {
+#ifdef DEBUG
+  Serial.println("*** Manual open all motors ***");
+#endif
+
+#ifdef DOOR
+  door.open();
+#endif
+
+#ifdef WINDOW
+  window.open();
+#endif
+  while (digitalRead(MANUAL_OPEN_PIN) == LOW) {
+    delay(100);
   }
 }
 
