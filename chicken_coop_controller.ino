@@ -1,5 +1,7 @@
 #include "MotorWithStops.h"
 
+#define DEBUG
+
 // Pin Assignments //
 #define DIR_DOOR_PIN 12 // Direction control for motor A
 #define PWM_DOOR_PIN 3  // PWM control (speed) for motor A
@@ -18,11 +20,18 @@
 #define WINDOW_CLOSED_LIMIT 5
 #define WINDOW_OPEN_LIMIT 4
 
-#define DEBUG
+// Enable coop actuators
+#define DOOR     // enable coop door funtionality
+#define WINDOW   // enable coop window funcitonality
 
 
+#ifdef DOOR
 MotorWithStops door(DIR_DOOR_PIN, PWM_DOOR_PIN, DOOR_CLOSED_LIMIT, DOOR_OPEN_LIMIT);
+#endif
+
+#ifdef WINDOW
 MotorWithStops window(DIR_WINDOW_PIN, PWM_WINDOW_PIN, WINDOW_CLOSED_LIMIT, WINDOW_OPEN_LIMIT);
+#endif
 
 void setup()
 {
@@ -31,30 +40,35 @@ void setup()
   Serial.begin(9600);
   Serial.println("Chicken Coop Controller");
 #endif
+#ifdef DOOR
   pinMode(LIGHT_SET_PIN, INPUT);
   pinMode(LIGHT_SENSE_PIN, INPUT);
+#endif
+#ifdef WINDOW
   pinMode(TEMP_SET_PIN, INPUT);
   pinMode(TEMP_SENSE_PIN, INPUT);
+#endif
 }
 
 
 void loop()
 {
   adjustCoop();
+  wasteSomeTime();
+}
+
+
+void wasteSomeTime() {
 #ifdef DEBUG
   delay(500);
 #else
-  sleepForAMinute();
+  delay(60000);
 #endif
 }
 
 
-void sleepForAMinute() {
-  delay(60000);
-}
-
-
 void adjustCoop() {
+#ifdef DOOR
   // door and light
   if (sensorAboveThreshold(LIGHT_SET_PIN, LIGHT_SENSE_PIN)) {
     door.open();
@@ -62,14 +76,17 @@ void adjustCoop() {
   else {
     door.close();
   }
+#endif
 
   // window and temperature
+#ifdef WINDOW
   if (sensorAboveThreshold(TEMP_SET_PIN, TEMP_SENSE_PIN)) {
     window.open();
   }
   else {
     window.close();
   }
+#endif
 }
 
 
