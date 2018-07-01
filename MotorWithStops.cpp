@@ -20,8 +20,6 @@ MotorWithStops::MotorWithStops(int _dirPin, int _pwmPin, int _closeStop, int _op
 
   digitalWrite(dirPin, LOW);
   digitalWrite(pwmPin, LOW);
-
-  updateStatus();
 }
 
 void MotorWithStops::invertDirection() {
@@ -50,39 +48,49 @@ void MotorWithStops::close() {
 
 void MotorWithStops::driveMotorToStop(int selectedStop) {
   digitalWrite(pwmPin, HIGH);
-  updateStatus();
 
   while (digitalRead(selectedStop) == HIGH ) {
     delay(200);
   }
 
   digitalWrite(pwmPin, LOW);
-  updateStatus();
 }
 
-int MotorWithStops::getStatus() {
-  return currentStatus;
-}
 
-void MotorWithStops::updateStatus() {
-  /*
-     Status codes:
-  */
-  int sum = 0;
-  if (digitalRead(closeStop) == LOW) {
-    sum += 1;
-  }
-  if ( digitalRead(openStop) == LOW) {
-    sum += 2;
-  }
+bool MotorWithStops::getMotorStatus() {
   if ( digitalRead(pwmPin) == HIGH) {
-    sum += 4;
+    return true;
   }
-  if ( digitalRead(dirPin) == HIGH) {
-    sum += 8;
+  else{
+    return false;
   }
-  
+}
 
-  currentStatus = sum;
+bool MotorWithStops::getDirectionStatus() {
+
+  if ( digitalRead(dirPin) == HIGH) {
+    return true;
+  }
+  else{
+    return false;
+  }
+}
+
+bool MotorWithStops::getOpenStopStatus() {
+  if ( digitalRead(openStop) == LOW) {
+    return true;
+  }
+  else{
+    return false;
+  }
+}
+
+bool MotorWithStops::getCloseStopStatus() {
+  if (digitalRead(closeStop) == LOW) {
+    return true;
+  }
+  else{
+    return false;
+  }
 }
 

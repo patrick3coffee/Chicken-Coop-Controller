@@ -12,13 +12,15 @@ class MotorWithStops {
     MotorWithStops(int _dirPin, int _pwmPin, int _closeStop, int _openStop);
     void open();
     void close();
-    int getStatus();
     void invertDirection();
+    bool getMotorStatus();
+    bool getDirectionStatus();
+    bool getOpenStopStatus();
+    bool getCloseStopStatus();
   private:
     int currentStatus, dirPin, pwmPin, closeStop, openStop;
     bool inverted;
     void driveMotorToStop(int selectedStop);
-    void updateStatus();
     bool checkOpenStop();
     bool checkCloseStop();
     void run(bool forward);
