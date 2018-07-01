@@ -9,12 +9,16 @@ Tracks motor and limit switches for movement between end points
 
 class MotorWithStops {
   public:
-    MotorWithStops(int dirPin, int pwmPin, int closeStop, int openStop);
+    MotorWithStops(int _dirPin, int _pwmPin, int _closeStop, int _openStop);
     void open();
     void close();
     int getStatus();
+    void invertDirection();
   private:
-    int status;
+    int currentStatus, dirPin, pwmPin, closeStop, openStop;
+    bool inverted;
+    void driveMotorToStop(int selectedStop);
+    void updateStatus();
     bool checkOpenStop();
     bool checkCloseStop();
     void run(bool forward);
