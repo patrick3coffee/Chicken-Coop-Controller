@@ -2,29 +2,35 @@
 
 #define DEBUG
 
-// Pin Assignments //
+/* 
+ *  Pin Assignments 
+*/
+// Motor pins
 #define DIR_DOOR_PIN 12 // Direction control for motor A
 #define PWM_DOOR_PIN 3  // PWM control (speed) for motor A
-#define DIR_WINDOW_PIN 13 // Direction control for motor B
-#define PWM_WINDOW_PIN 11 // PWM control (speed) for motor B
+#define DIR_WINDOW_PIN 13
+#define PWM_WINDOW_PIN 11 
 
-#define LIGHT_SET_PIN A0
-#define LIGHT_SENSE_PIN A2
-
-#define TEMP_SET_PIN A1
-#define TEMP_SENSE_PIN A3
-
+// Stop pins
 #define DOOR_CLOSED_LIMIT 7
 #define DOOR_OPEN_LIMIT 6
-
 #define WINDOW_CLOSED_LIMIT 5
 #define WINDOW_OPEN_LIMIT 4
+
+// Analog pins to read potentiometers for settings
+#define LIGHT_SET_PIN A0   
+#define TEMP_SET_PIN A1
+
+// Analog pins to read sensors
+#define LIGHT_SENSE_PIN A2
+#define TEMP_SENSE_PIN A3
+
 
 // Enable coop actuators
 #define DOOR     // enable coop door funtionality
 #define WINDOW   // enable coop window funcitonality
 
-
+// Setup motor control objects
 #ifdef DOOR
 MotorWithStops door(DIR_DOOR_PIN, PWM_DOOR_PIN, DOOR_CLOSED_LIMIT, DOOR_OPEN_LIMIT);
 #endif
@@ -37,9 +43,12 @@ void setup()
 {
 
 #ifdef DEBUG
+// setup serial
   Serial.begin(9600);
   Serial.println("Chicken Coop Controller");
 #endif
+
+// setup pins
 #ifdef DOOR
   pinMode(LIGHT_SET_PIN, INPUT);
   pinMode(LIGHT_SENSE_PIN, INPUT);
@@ -59,17 +68,19 @@ void loop()
 
 
 void wasteSomeTime() {
+  
 #ifdef DEBUG
-  delay(500);
+  delay(500);    // Check twice a second for serial output sake.
 #else
-  delay(60000);
+  delay(60000);  // Check once a minute because temperature and sunlight change slowly.
 #endif
 }
 
 
+// Check sensors and actuate motors if needed.
 void adjustCoop() {
 #ifdef DOOR
-  // door and light
+// Door and light
   if (sensorAboveThreshold(LIGHT_SET_PIN, LIGHT_SENSE_PIN)) {
     door.open();
   }
@@ -78,7 +89,7 @@ void adjustCoop() {
   }
 #endif
 
-  // window and temperature
+// Window and temperature
 #ifdef WINDOW
   if (sensorAboveThreshold(TEMP_SET_PIN, TEMP_SENSE_PIN)) {
     window.open();
@@ -90,6 +101,7 @@ void adjustCoop() {
 }
 
 
+// Compare sensor to setting
 bool sensorAboveThreshold(int setting_pin, int sensor_pin) {
   int sensor_val = analogRead(sensor_pin);
   int setting_val = analogRead(setting_pin);
