@@ -21,6 +21,9 @@
 #define DEBUG
 
 
+MotorWithStops door(DIR_DOOR_PIN, PWM_DOOR_PIN, DOOR_CLOSED_LIMIT, DOOR_OPEN_LIMIT);
+MotorWithStops window(DIR_WINDOW_PIN, PWM_WINDOW_PIN, WINDOW_CLOSED_LIMIT, WINDOW_OPEN_LIMIT);
+
 void setup()
 {
 
@@ -28,23 +31,16 @@ void setup()
   Serial.begin(9600);
   Serial.println("Chicken Coop Controller");
 #endif
-  setupArdumoto(); // Set all pins as outputs
   pinMode(LIGHT_SET_PIN, INPUT);
   pinMode(LIGHT_SENSE_PIN, INPUT);
   pinMode(TEMP_SET_PIN, INPUT);
   pinMode(TEMP_SENSE_PIN, INPUT);
-  
-  pinMode(DOOR_CLOSED_LIMIT, INPUT_PULLUP);
-  pinMode(DOOR_OPEN_LIMIT, INPUT_PULLUP);
-  pinMode(WINDOW_CLOSED_LIMIT, INPUT_PULLUP);
-  pinMode(WINDOW_OPEN_LIMIT, INPUT_PULLUP);
 }
 
 
 void loop()
 {
-  adjustDoor();
-  //  adjustWindow();
+  adjustCoop();
 #ifdef DEBUG
   delay(500);
 #else
@@ -58,30 +54,39 @@ void sleepForAMinute() {
 }
 
 
-void adjustDoor() {
-  if (lightAboveThreshold()) {
-    openDoor(true);
+void adjustCoop() {
+  // door and light
+  if (sensorAboveThreshold(LIGHT_SET_PIN, LIGHT_SENSE_PIN)) {
+    door.open();
   }
   else {
-    openDoor(false);
+    door.close();
+  }
+
+  // window and temperature
+  if (sensorAboveThreshold(TEMP_SET_PIN, TEMP_SENSE_PIN)) {
+    window.open();
+  }
+  else {
+    window.close();
   }
 }
 
 
-bool lightAboveThreshold() {
-  int sensor_val = analogRead(LIGHT_SENSE_PIN);
-  int setting_val = analogRead(LIGHT_SET_PIN);
+bool sensorAboveThreshold(int setting_pin, int sensor_pin) {
+  int sensor_val = analogRead(sensor_pin);
+  int setting_val = analogRead(setting_pin);
 #ifdef DEBUG
-  Serial.print("Light reading: ");
+  Serial.print("sensor reading: ");
   Serial.println(sensor_val);
-  Serial.print("Light setting: ");
+  Serial.print("sensor setting: ");
   Serial.println(setting_val);
 #endif
 
   if ( sensor_val > setting_val) {
 
 #ifdef DEBUG
-    Serial.println("Light above threshold.");
+    Serial.println("sensor above threshold.");
 #endif
 
     return true;
@@ -89,52 +94,10 @@ bool lightAboveThreshold() {
   else {
 
 #ifdef DEBUG
-    Serial.println("Light below threshold.");
+    Serial.println("sensor below threshold.");
 #endif
 
     return false;
   }
-}
-
-void openDoor(bool openDoor) {
-  if (openDoor) {
-#ifdef DEBUG
-    Serial.println("Open door");
-#endif
-    digitalWrite(DIR_DOOR_PIN, LOW);
-    digitalWrite(PWM_DOOR_PIN, HIGH);
-    while (digitalRead(DOOR_OPEN_LIMIT) == HIGH) {
-      delay(200);
-    }
-    digitalWrite(PWM_DOOR_PIN, LOW);
-  }
-  else {
-#ifdef DEBUG
-    Serial.println("Close door");
-#endif
-    digitalWrite(DIR_DOOR_PIN, HIGH);
-    digitalWrite(PWM_DOOR_PIN, HIGH);
-    while (digitalRead(DOOR_CLOSED_LIMIT) == HIGH) {
-      delay(200);
-    }
-    digitalWrite(PWM_DOOR_PIN, LOW);
-  }
-}
-
-
-// setupArdumoto initialize all pins
-void setupArdumoto()
-{
-  // All pins should be setup as outputs:
-  pinMode(PWM_DOOR_PIN, OUTPUT);
-  pinMode(PWM_WINDOW_PIN, OUTPUT);
-  pinMode(DIR_DOOR_PIN, OUTPUT);
-  pinMode(DIR_WINDOW_PIN, OUTPUT);
-
-  // Initialize all pins as low:
-  digitalWrite(PWM_DOOR_PIN, LOW);
-  digitalWrite(PWM_WINDOW_PIN, LOW);
-  digitalWrite(DIR_DOOR_PIN, LOW);
-  digitalWrite(DIR_WINDOW_PIN, LOW);
 }
 
