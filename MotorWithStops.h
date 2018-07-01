@@ -10,9 +10,10 @@ Tracks motor and limit switches for movement between end points
 class MotorWithStops {
   public:
     MotorWithStops(int _dirPin, int _pwmPin, int _closeStop, int _openStop);
+    MotorWithStops(int _dirPin, int _pwmPin, int _closeStop, int _openStop, bool _inverted);
     void open();
     void close();
-    void invertDirection();
+    void stop();
     bool getMotorStatus();
     bool getDirectionStatus();
     bool getOpenStopStatus();
