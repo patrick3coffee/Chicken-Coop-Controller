@@ -71,15 +71,15 @@ void MotorWithStops::suspend(bool suspend) {
 
 
 void MotorWithStops::driveMotorToStop(int selectedStop) {
-  if (suspended) {
+  if (suspended || digitalRead(selectedStop) == LOW ) {
     stop();
   }
   else {
     digitalWrite(pwmPin, HIGH);
 
     bool done = false;
-    while (done) {
-      if (suspended || digitalRead(selectedStop) == HIGH ) {
+    while (!done) {
+      if (suspended || digitalRead(selectedStop) == LOW ) {
         done = true;
       }
       delay(200);
