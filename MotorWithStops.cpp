@@ -75,6 +75,10 @@ void MotorWithStops::driveMotorToStop(int selectedStop) {
     stop();
   }
   else {
+    for (int i = 0; i< 255; i++){
+      analogWrite(pwmPin, i);
+      delay(3);
+    }
     digitalWrite(pwmPin, HIGH);
 
     bool done = false;
