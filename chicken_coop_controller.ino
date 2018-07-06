@@ -39,11 +39,11 @@
 
 // Setup motor control objects
 #ifdef DOOR
-MotorWithStops door(DIR_DOOR_PIN, PWM_DOOR_PIN, DOOR_CLOSED_LIMIT, DOOR_OPEN_LIMIT);
+MotorWithStops door(DIR_DOOR_PIN, PWM_DOOR_PIN, false, DOOR_CLOSED_LIMIT, DOOR_OPEN_LIMIT);
 #endif
 
 #ifdef WINDOW
-MotorWithStops window(DIR_WINDOW_PIN, PWM_WINDOW_PIN, WINDOW_CLOSED_LIMIT, WINDOW_OPEN_LIMIT);
+MotorWithStops window(DIR_WINDOW_PIN, PWM_WINDOW_PIN, false, WINDOW_CLOSED_LIMIT, WINDOW_OPEN_LIMIT);
 #endif
 
 
