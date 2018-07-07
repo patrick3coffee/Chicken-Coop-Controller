@@ -1,10 +1,10 @@
 #include "MotorWithStops.h"
-/* 
- *  MotorWithStops library located here:
- *  https://github.com/patrick3coffee/Motor-with-Stops
- */
+/*
+    MotorWithStops library located here:
+    https://github.com/patrick3coffee/Motor-with-Stops
+*/
 
-#define DEBUG
+//#define DEBUG
 
 /*
     Pin Assignments
@@ -26,8 +26,8 @@
 #define TEMP_SET_PIN A1
 
 // Analog pins to read sensors
-#define LIGHT_SENSE_PIN A2
-#define TEMP_SENSE_PIN A3
+#define LIGHT_SENSE_PIN A3
+#define TEMP_SENSE_PIN A2
 
 // Mode selector switch
 #define SUSPEND_PIN 2
@@ -35,11 +35,12 @@
 
 // Enable coop actuators
 #define DOOR     // enable coop door funtionality
-#define WINDOW   // enable coop window funcitonality
+//#define WINDOW   // enable coop window funcitonality
 
 // Setup motor control objects
+
 #ifdef DOOR
-MotorWithStops door(DIR_DOOR_PIN, PWM_DOOR_PIN, false, DOOR_CLOSED_LIMIT, DOOR_OPEN_LIMIT);
+MotorWithStops door(DIR_DOOR_PIN, PWM_DOOR_PIN, true, DOOR_CLOSED_LIMIT, DOOR_OPEN_LIMIT, false, true);
 #endif
 
 #ifdef WINDOW
@@ -100,33 +101,72 @@ void wasteSomeTime() {
 
 // Check sensors and actuate motors if needed.
 void adjustCoop() {
-#ifdef DEBUG && DOOR
-  Serial.println("  Light:");
-#endif
+
 #ifdef DOOR
+  adjustDoor();
+#endif
+
+#ifdef WINDOW
+  adjustWindow();
+#endif
+}
+
+#ifdef DOOR
+void adjustDoor() {
   // Door and light
+#ifdef DEBUG
+  Serial.println("Adjusting Door");
+  if (door.isOpen()) {
+    Serial.println("  Door: open");
+  }
+  else {
+    Serial.println("  Door: not open");
+  }
+  if (door.isClosed()) {
+    Serial.println("  Door: closed");
+  }
+  else {
+    Serial.println("  Door: not closed");
+  }
+  Serial.println(" Light:");
+#endif
   if (sensorAboveThreshold(LIGHT_SET_PIN, LIGHT_SENSE_PIN)) {
     door.open();
   }
   else {
     door.close();
   }
+}
 #endif
 
-  // Window and temperature
-#ifdef DEBUG && WINDOW
-  Serial.println("  Temperature:");
-#endif
 #ifdef WINDOW
+void adjustWindow() {
+  // Window and temperature
+#ifdef DEBUG
+  Serial.println("Adjusting Window");
+  if (door.isOpen()) {
+    Serial.println("  Window: open");
+  }
+  else {
+    Serial.println("  Window: not open");
+  }
+  if (door.isClosed()) {
+    Serial.println("  Window: closed");
+  }
+  else {
+    Serial.println("  Window: not closed");
+  }
+  Serial.println(" Temperature:");
+#endif
+
   if (sensorAboveThreshold(TEMP_SET_PIN, TEMP_SENSE_PIN)) {
     window.open();
   }
   else {
     window.close();
   }
-#endif
 }
-
+#endif
 
 // Compare sensor to setting
 bool sensorAboveThreshold(int setting_pin, int sensor_pin) {
