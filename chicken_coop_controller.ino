@@ -33,9 +33,14 @@
 #define SUSPEND_PIN 2
 #define MANUAL_OPEN_PIN 8
 
+// Other pin assignments
+#define HUMAN_DOOR_SWITCH 9
+#define LIGHT_CONTROL_PIN 10    // PWM would be nice for lights, but not necessary
+
 // Enable coop actuators
-#define CHICKEN_DOOR     // enable coop door funtionality
-//#define WINDOW   // enable coop window funcitonality
+#define HUMAN_DOOR    // enable human door switch to enable coop lights
+#define CHICKEN_DOOR  // enable coop door funtionality
+//#define WINDOW      // enable coop window funcitonality
 
 // Setup motor control objects
 
