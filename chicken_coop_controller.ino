@@ -58,15 +58,12 @@ void setup()
 #endif
 
   // setup pins
-#ifdef DOOR
   pinMode(LIGHT_SET_PIN, INPUT);
-#endif
   pinMode(LIGHT_SENSE_PIN, INPUT); //  Light sensor used for status light brightness
 
-#ifdef WINDOW
   pinMode(TEMP_SET_PIN, INPUT);
   pinMode(TEMP_SENSE_PIN, INPUT);
-#endif
+
 
   pinMode(MANUAL_OPEN_PIN, INPUT_PULLUP);
   pinMode(SUSPEND_PIN, INPUT_PULLUP);
@@ -77,11 +74,11 @@ void setup()
 
 void loop()
 {
-  if (digitalRead(MANUAL_OPEN_PIN) == LOW) {
-    manualOpen();
-  }
-  else if (digitalRead(SUSPEND_PIN) == LOW) {
+  if (digitalRead(SUSPEND_PIN) == LOW) {
     suspendMotors();
+  }
+  else if (digitalRead(MANUAL_OPEN_PIN) == LOW) {
+    manualOpen();
   }
   adjustCoop();
   wasteSomeTime();
