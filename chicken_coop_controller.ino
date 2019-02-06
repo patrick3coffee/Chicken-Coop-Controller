@@ -94,7 +94,7 @@ void wasteSomeTime() {
   Serial.println(".");
   delay(1000);    // Check twice a second for serial output sake.
 #else
-  delay(60000);  // Check once a minute because temperature and sunlight change slowly.
+  delay(5000);  // Check every 5 seconds because temperature and sunlight change slowly.
 #endif
 }
 
