@@ -1,7 +1,7 @@
 #include "MotorWithStops.h"
 /*
     MotorWithStops library located here:
-    https://github.com/patrick3coffee/Motor-with-Stops
+    https://github.com/patrick3making/Motor-with-Stops
 */
 
 //#define DEBUG
