@@ -10,14 +10,14 @@
     Pin Assignments
 */
 // Motor pins
-#define DIR_DOOR_PIN 12 // Direction control for motor A
-#define PWM_DOOR_PIN 3  // PWM control (speed) for motor A
+#define DIR_CHICKEN_DOOR_PIN 12 // Direction control for motor A
+#define PWM_CHICKEN_DOOR_PIN 3  // PWM control (speed) for motor A
 #define DIR_WINDOW_PIN 13
 #define PWM_WINDOW_PIN 11
 
 // Stop pins
-#define DOOR_CLOSED_LIMIT 7
-#define DOOR_OPEN_LIMIT 6
+#define CHICKEN_DOOR_CLOSED_LIMIT 7
+#define CHICKEN_DOOR_OPEN_LIMIT 6
 #define WINDOW_CLOSED_LIMIT 5
 #define WINDOW_OPEN_LIMIT 4
 
@@ -34,13 +34,13 @@
 #define MANUAL_OPEN_PIN 8
 
 // Enable coop actuators
-#define DOOR     // enable coop door funtionality
+#define CHICKEN_DOOR     // enable coop door funtionality
 //#define WINDOW   // enable coop window funcitonality
 
 // Setup motor control objects
 
-#ifdef DOOR
-MotorWithStops door(DIR_DOOR_PIN, PWM_DOOR_PIN, true, DOOR_CLOSED_LIMIT, DOOR_OPEN_LIMIT, false, true);
+#ifdef CHICKEN_DOOR
+MotorWithStops chickenDoor(DIR_CHICKEN_DOOR_PIN, PWM_CHICKEN_DOOR_PIN, true, CHICKEN_DOOR_CLOSED_LIMIT, CHICKEN_DOOR_OPEN_LIMIT, false, true);
 #endif
 
 #ifdef WINDOW
@@ -89,7 +89,7 @@ void wasteSomeTime() {
 
 #ifdef DEBUG
   Serial.println(".");
-  delay(1000);    // Check twice a second for serial output sake.
+  delay(500);    // Check twice a second for serial output.
 #else
   delay(5000);  // Check every 5 seconds because temperature and sunlight change slowly.
 #endif
@@ -99,8 +99,8 @@ void wasteSomeTime() {
 // Check sensors and actuate motors if needed.
 void adjustCoop() {
 
-#ifdef DOOR
-  adjustDoor();
+#ifdef CHICKEN_DOOR
+  adjustChickenDoor();
 #endif
 
 #ifdef WINDOW
@@ -108,30 +108,30 @@ void adjustCoop() {
 #endif
 }
 
-#ifdef DOOR
-void adjustDoor() {
-  // Door and light
+#ifdef CHICKEN_DOOR
+void adjustChickenDoor() {
+  // Chicken Door and light
 #ifdef DEBUG
-  Serial.println("Adjusting Door");
-  if (door.isOpen()) {
-    Serial.println("  Door: open");
+  Serial.println("Adjusting Chicken Door");
+  if (chickenDoor.isOpen()) {
+    Serial.println("  Chicken Door: open");
   }
   else {
-    Serial.println("  Door: not open");
+    Serial.println("  Chicken Door: not open");
   }
-  if (door.isClosed()) {
-    Serial.println("  Door: closed");
+  if (chickenDoor.isClosed()) {
+    Serial.println("  Chicken Door: closed");
   }
   else {
-    Serial.println("  Door: not closed");
+    Serial.println("  Chicken Door: not closed");
   }
   Serial.println(" Light:");
 #endif
   if (sensorAboveThreshold(LIGHT_SET_PIN, LIGHT_SENSE_PIN)) {
-    door.open();
+    chickenDoor.open();
   }
   else {
-    door.close();
+    chickenDoor.close();
   }
 }
 #endif
@@ -141,13 +141,13 @@ void adjustWindow() {
   // Window and temperature
 #ifdef DEBUG
   Serial.println("Adjusting Window");
-  if (door.isOpen()) {
+  if (chickenDoor.isOpen()) {
     Serial.println("  Window: open");
   }
   else {
     Serial.println("  Window: not open");
   }
-  if (door.isClosed()) {
+  if (chickenDoor.isClosed()) {
     Serial.println("  Window: closed");
   }
   else {
@@ -216,8 +216,8 @@ void overrideInterrupt() {
 }
 
 void suspendMotors() {
-#ifdef DOOR
-  door.suspend(true);
+#ifdef CHICKEN_DOOR
+  chickenDoor.suspend(true);
 #endif
 
 #ifdef WINDOW
@@ -229,8 +229,8 @@ void suspendMotors() {
 }
 
 void resumeMotors() {
-#ifdef DOOR
-  door.suspend(false);
+#ifdef CHICKEN_DOOR
+  chickenDoor.suspend(false);
 #endif
 
 #ifdef WINDOW
@@ -243,8 +243,8 @@ void manualOpen() {
   Serial.println("*** Manual open all motors ***");
 #endif
 
-#ifdef DOOR
-  door.open();
+#ifdef CHICKEN_DOOR
+  chickenDoor.open();
 #endif
 
 #ifdef WINDOW
