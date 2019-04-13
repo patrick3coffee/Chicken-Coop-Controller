@@ -71,7 +71,8 @@ void setup()
   pinMode(MANUAL_OPEN_PIN, INPUT_PULLUP);
   pinMode(MANUAL_CLOSE_PIN, INPUT_PULLUP);
 
-  //attachInterrupt(digitalPinToInterrupt(MANUAL_CLOSE_PIN), manualOverride, CHANGE);
+  pinMode(HUMAN_DOOR_SWITCH, INPUT_PULLUP);
+  pinMode(LIGHT_CONTROL_PIN, OUTPUT);
 }
 
 
@@ -92,6 +93,10 @@ void adjustCoop() {
 #ifdef WINDOW
   adjustWindow();
 #endif
+
+#ifdef HUMAN_DOOR
+  adjustLights()
+#endif
 }
 
 #ifdef CHICKEN_DOOR
@@ -102,7 +107,8 @@ void adjustChickenDoor() {
   bool lightOutside = sensorAboveThreshold(LIGHT_SET_PIN, LIGHT_SENSE_PIN);
   bool doorOpen = chickenDoor.isOpen();
   bool doorClosed = chickenDoor.isClosed();
-  if ( chickenDoor.isRunning()) {
+  bool doorRunning = chickenDoor.isRunning();
+  if ( doorRunning ) {
     // nothing to do
   }
   else {
@@ -120,7 +126,7 @@ void adjustChickenDoor() {
     }
 
 #ifdef DEBUG
-    if ( !doorClosed && !doorOpen )  {
+    if ( !doorClosed && !doorOpen && !doorRunning )  {
       Serial.println("**** DOOR ERROR ****");
     }
 #endif
@@ -137,7 +143,8 @@ void adjustWindow() {
   bool warm = sensorAboveThreshold(TEMP_SET_PIN, TEMP_SENSE_PIN);
   bool windowOpen = window.isOpen();
   bool windowClosed = window.isClosed();
-  if ( window.isRunning()) {
+  bool windowRunning = window.isRunning();
+  if ( windowRunning ) {
     // nothing to do
   }
   else {
@@ -155,69 +162,79 @@ void adjustWindow() {
     }
 
 #ifdef DEBUG
-    bool doorOpen = window.isOpen();
-    bool doorClosed = window.isClosed();
-    if ( !windowClosed && !windowOpen )  {
+    if ( !windowClosed && !windowOpen && !windowRunning )  {
       Serial.println("**** WINDOW ERROR ****");
     }
 #endif
 
   }
 #endif
+}
 
-  // Compare sensor to setting
-  bool sensorAboveThreshold(int setting_pin, int sensor_pin) {
-    int sensor_val = analogRead(sensor_pin);
-    int setting_val = analogRead(setting_pin);
-    Serial.print("sensor reading, setting: ");
-    Serial.print(sensor_val);
-    Serial.print(", ");
-    Serial.print(setting_val);
-
-    if ( sensor_val > setting_val) {
-      Serial.println("    ^");
-      return true;
-    }
-    else {
-      Serial.println("    V");
-      return false;
-    }
+#ifdef HUMAN_DOOR
+void adjustLights() {
+  if (digitalRead(HUMAN_DOOR_SWITCH) == LOW) {
+    digitalWrite(LIGHT_CONTROL_PIN, HIGH);
   }
+  else {
+    digitalWrite(LIGHT_CONTROL_PIN, HIGH);
+  }
+}
+#endif
 
+// Compare sensor to setting
+bool sensorAboveThreshold(int setting_pin, int sensor_pin) {
+  int sensor_val = analogRead(sensor_pin);
+  int setting_val = analogRead(setting_pin);
+  Serial.print("sensor reading, setting: ");
+  Serial.print(sensor_val);
+  Serial.print(", ");
+  Serial.print(setting_val);
 
-  bool manualOverride() {
-    delay(20);  // debounce
-    if ( digitalRead(MANUAL_CLOSE_PIN) == LOW) {
-      manualClose();
-      return true;
-    }
-
-    if (digitalRead(MANUAL_OPEN_PIN) == LOW) {
-      manualOpen();
-      return true;
-    }
+  if ( sensor_val > setting_val) {
+    Serial.println("    ^");
+    return true;
+  }
+  else {
+    Serial.println("    V");
     return false;
   }
+}
 
-  void manualClose() {
-    Serial.println("*** Manual close all motors ***");
+
+bool manualOverride() {
+  delay(20);  // debounce
+  if ( digitalRead(MANUAL_CLOSE_PIN) == LOW) {
+    manualClose();
+    return true;
+  }
+
+  if (digitalRead(MANUAL_OPEN_PIN) == LOW) {
+    manualOpen();
+    return true;
+  }
+  return false;
+}
+
+void manualClose() {
+  Serial.println("*** Manual close all motors ***");
 #ifdef CHICKEN_DOOR
-    chickenDoor.close();
+  chickenDoor.close();
 #endif
 
 #ifdef WINDOW
-    window.close();
+  window.close();
 #endif
-  }
+}
 
-  void manualOpen() {
-    Serial.println("*** Manual open all motors ***");
+void manualOpen() {
+  Serial.println("*** Manual open all motors ***");
 
 #ifdef CHICKEN_DOOR
-    chickenDoor.open();
+  chickenDoor.open();
 #endif
 
 #ifdef WINDOW
-    window.open();
+  window.open();
 #endif
-  }
+}
