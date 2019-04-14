@@ -75,28 +75,35 @@ void setup()
   pinMode(LIGHT_CONTROL_PIN, OUTPUT);
 }
 
+int analogSmoothing(int pin, int samples = 10) {
+  int sum, average = 0;
 
-void loop()
-{
-  if (!manualOverride()) {
-    adjustCoop();
+  for (int sample = 0; sample < samples; sample++) {
+    sum += analogRead(pin);
   }
+
+  average = sum / samples;
+
+  return average;
 }
 
-// Check sensors and actuate motors if needed.
-void adjustCoop() {
+// Compare sensor to setting
+bool sensorAboveThreshold(int setting_pin, int sensor_pin) {
+  int sensor_val = analogSmoothing(sensor_pin);
+  int setting_val = analogSmoothing(setting_pin);
+  Serial.print("sensor reading, setting: ");
+  Serial.print(sensor_val);
+  Serial.print(", ");
+  Serial.print(setting_val);
 
-#ifdef CHICKEN_DOOR
-  adjustChickenDoor();
-#endif
-
-#ifdef WINDOW
-  adjustWindow();
-#endif
-
-#ifdef HUMAN_DOOR
-  adjustLights()
-#endif
+  if ( sensor_val > setting_val) {
+    Serial.println("    ^");
+    return true;
+  }
+  else {
+    Serial.println("    V");
+    return false;
+  }
 }
 
 #ifdef CHICKEN_DOOR
@@ -168,8 +175,9 @@ void adjustWindow() {
 #endif
 
   }
-#endif
 }
+#endif
+
 
 #ifdef HUMAN_DOOR
 void adjustLights() {
@@ -181,26 +189,6 @@ void adjustLights() {
   }
 }
 #endif
-
-// Compare sensor to setting
-bool sensorAboveThreshold(int setting_pin, int sensor_pin) {
-  int sensor_val = analogRead(sensor_pin);
-  int setting_val = analogRead(setting_pin);
-  Serial.print("sensor reading, setting: ");
-  Serial.print(sensor_val);
-  Serial.print(", ");
-  Serial.print(setting_val);
-
-  if ( sensor_val > setting_val) {
-    Serial.println("    ^");
-    return true;
-  }
-  else {
-    Serial.println("    V");
-    return false;
-  }
-}
-
 
 bool manualOverride() {
   delay(20);  // debounce
@@ -237,4 +225,27 @@ void manualOpen() {
 #ifdef WINDOW
   window.open();
 #endif
+}
+
+// Check sensors and actuate motors if needed.
+void adjustCoop() {
+
+#ifdef CHICKEN_DOOR
+  adjustChickenDoor();
+#endif
+
+#ifdef WINDOW
+  adjustWindow();
+#endif
+
+#ifdef HUMAN_DOOR
+  adjustLights();
+#endif
+}
+
+void loop()
+{
+  if (!manualOverride()) {
+    adjustCoop();
+  }
 }
